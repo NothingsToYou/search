@@ -1,0 +1,93 @@
+
+<!DOCTYPE html >
+{% load staticfiles %}
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>search</title>
+<link href="{% static 'css/index.css' %}" rel="stylesheet" type="text/css" />
+<link href="{%static 'css/style_index.css' %}" rel='stylesheet' type='text/css' />
+</head>
+<body>
+<div class="banner">
+		<div class="container">
+			<div class="span_1_of_1">
+			    <h2>TEXT<br>  All over the world.</h2>
+			    <div class="search" >
+			      <ul class="nav1" id="search">
+						<div>
+							<input autocomplete='off' type="text"  class="searchInput" id="search_text" placeholder="Search" spellcheck="false"/>
+                            <input type="button" onclick="active()" class="searchButton"   id="search_button">
+                             <table class="data">
+                            </table>
+						</div>
+	              </ul>
+	            </div>
+			</div>
+		</div>
+</div>
+</body>
+<script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+<script type="text/javascript">
+    var suggest_url = "{% url "suggest" %}"
+    var detail_url="{% url "detail_url" %}"
+    // 搜索建议
+    $(function(){
+        $('.searchInput').bind(' input propertychange ',function(){
+
+            var searchText = $(this).val();
+            var tmpHtml = "";
+            $.ajax({
+                cache: false,
+                type: 'get',
+                dataType:'json',
+                url:suggest_url+"?s="+searchText,
+
+                async: true,
+                success: function(data) {
+                    //动态插入 建议
+                    for (var item in data){
+                        var utob=item
+                        var URL=data[item]
+                        tmpHtml += '<tr onclick="window.open(\''+URL+'\''+',\'_self\''+')"><td><a href="'+URL+'">'+utob+'</a></td></tr>'
+                    }
+                    $(".data").html("")
+                    $(".data").append(tmpHtml);
+                    if (data.length == 0){
+                        $('.data').hide()
+                    }else {
+                        $('.data').show()
+                    }
+                }
+            });
+        } );
+    })
+</script>
+<script>
+    var searchArr;
+    //定义一个search的，判断浏览器有无数据存储（搜索历史）
+    if(localStorage.search){
+    //如果有，转换成 数组的形式存放到searchArr的数组里（localStorage以字符串的形式存储，所以要把它转换成数组的形式）
+        searchArr= localStorage.search.split(",")
+    }else{
+    //如果没有，则定义searchArr为一个空的数组
+        searchArr = [];
+    }
+    //把存储的数据显示出来作为搜索历史
+    //去重
+    function KillRepeat(val){
+        var kill = 0;
+        for (var i=0;i<searchArr.length;i++){
+            if(val===searchArr[i]){
+                kill ++;
+            }
+        }
+        if(kill<1){
+            searchArr.unshift(val);
+        }else {
+            removeByValue(searchArr, val)
+            searchArr.unshift(val)
+        }
+    }
+</script>
+</html>
